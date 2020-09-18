@@ -308,14 +308,14 @@ class MPC_test():
         rhs = np.concatenate((rhs, np.array([(self.pitch_gain* pitch_ref - euler[1])/self.pitch_tau])))
         rhs = np.concatenate((rhs, np.array([0.0])))
         #payload的三轴加速度
-        a_x_p = states[0]- (self.L * euler_pv[1] * ca.sin(euler_p[1]) + self.L * ((euler_v[0]* euler_v[2])*(self.Izz- self.Ixx)/self.Iyy) * ca.cos(euler_p[1]) * ca.cos(euler_p[0]) -
-                      self.L * 0 * ca.sin(euler_p[0]) * ca.cos(euler_p[1]) - 2 * self.L * euler_v[1] * euler_pv[1] * ca.sin(euler_p[1]) * ca.cos(euler_p[0]) -
-                      2 * self.L * euler_v[1] * euler_pv[0] * ca.sin(euler_p[0]) * ca.cos(euler_p[1]) - 2 * self.L * euler_v[2] * euler_pv[0] * ca.cos(euler_p[1]) *
-                      ca.cos(euler_p[0]) + 2 * self.L * euler_v[2] * euler_pv[1] * ca.sin(euler_p[0]) * ca.sin(euler_p[1]) - euler_v[1] * euler_v[2] * (self.Ixx - self.Iyy))
-        a_y_p = states[1]- (-self.L * euler_pv[0] **2 * ca.sin(euler_p[0])* ca.cos(euler_p[1])- 2* self.L * euler_pv[0]* euler_pv[1]* ca.cos(euler_p[0])* ca.sin(euler_p[1]) - euler_pv[1]**2* ca.sin(euler_p[0])* ca.cos(euler_p[1])+
-                            self.L* ((euler_v[1]* euler_v[2])*(self.Iyy- self.Izz)/self.Ixx)* ca.cos(euler_p[1])*ca.cos(euler_p[0])-
-                       + 2* self.L* euler_v[2] * euler_pv[1] * ca.cos(euler_p[1])- 2* self.L* euler_v[1] * ca.sin(euler_p[1])* ca.cos(euler_p[0])- 2* self.L*
-                      euler_v[0]* euler_pv[0] * ca.sin(euler_p[0])* ca.cos(euler_p[1])- euler_v[0]* euler_v[2]* (self.Izz- self.Ixx))
+        a_x_p = states[0]- (self.L * euler_pv[1] * np.sin(euler_p[1]) + self.L * ((euler_v[0]* euler_v[2])*(self.Izz- self.Ixx)/self.Iyy) * np.cos(euler_p[1]) * np.cos(euler_p[0]) -
+                      self.L * 0 * np.sin(euler_p[0]) * np.cos(euler_p[1]) - 2 * self.L * euler_v[1] * euler_pv[1] * np.sin(euler_p[1]) * np.cos(euler_p[0]) -
+                      2 * self.L * euler_v[1] * euler_pv[0] * np.sin(euler_p[0]) * np.cos(euler_p[1]) - 2 * self.L * euler_v[2] * euler_pv[0] * np.cos(euler_p[1]) *
+                      np.cos(euler_p[0]) + 2 * self.L * euler_v[2] * euler_pv[1] * np.sin(euler_p[0]) * np.sin(euler_p[1]) - euler_v[1] * euler_v[2] * (self.Ixx - self.Iyy))
+        a_y_p = states[1]- (-self.L * euler_pv[0] **2 * np.sin(euler_p[0])* np.cos(euler_p[1])- 2* self.L * euler_pv[0]* euler_pv[1]* np.cos(euler_p[0])* np.sin(euler_p[1]) - euler_pv[1]**2* np.sin(euler_p[0])* np.cos(euler_p[1])+
+                            self.L* ((euler_v[1]* euler_v[2])*(self.Iyy- self.Izz)/self.Ixx)* np.cos(euler_p[1])*np.cos(euler_p[0])-
+                       + 2* self.L* euler_v[2] * euler_pv[1] * np.cos(euler_p[1])- 2* self.L* euler_v[1] * np.sin(euler_p[1])* np.cos(euler_p[0])- 2* self.L*
+                      euler_v[0]* euler_pv[0] * np.sin(euler_p[0])* np.cos(euler_p[1])- euler_v[0]* euler_v[2]* (self.Izz- self.Ixx))
         #a_roll, a_pitch, a_yaw
         rhs = np.concatenate((rhs, np.array([(euler_v[1]* euler_v[2])*(self.Iyy- self.Izz)/self.Ixx+ ca.cos(euler[2]) * ca.cos(euler[1]) * self.d * self.mp* (self.g_* ca.sin(euler[0])* ca.cos(euler[1])+
                  a_y_p)/self.Ixx- (ca.cos(euler[2])* ca.sin(euler[1])* ca.sin(euler[0])- ca.sin(euler[2])* ca.cos(euler[0]))*self.d *self.mp* (a_x_p- self.g_* ca.sin(euler[1]))/self.Ixx])))
@@ -471,7 +471,7 @@ if __name__ == '__main__':
     index_time = []
     start_time = time.time()
     #b = np.array([0.0]).reshape(-1, 1)
-    while(mpc_iter < sim_time/dt and mpc_iter < 50):
+    while(mpc_iter < sim_time/dt and mpc_iter < 5):
         ## set parameters
         control_params = ca.vertcat(ext_forces.reshape(-1, 1), mpc_obj.trajectory.reshape(-1, 1))#mpc_obj.trajectory.reshape(-1)#这里本身是vertcat把力和轨迹弄成一维数组，我这样可以吗
         ## initial guess of the optimization targets
@@ -484,6 +484,7 @@ if __name__ == '__main__':
         estimated_opt = sol['x'].full()
         mpc_u_ = estimated_opt[:int(n_controls*(N-1))].reshape(N-1, n_controls)
         mpc_x_ = estimated_opt[int(n_controls*(N-1)):].reshape(N, n_states)
+        print(mpc_x_)
         # print(next_states)
         ## save results
         u_c.append(mpc_u_[0, :])
@@ -507,6 +508,9 @@ if __name__ == '__main__':
     traj_d = np.array(traj_c)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
+    plt.xticks(np.arange(0, 0.1, 0.01))
+    plt.yticks(np.arange(0, 0.1, 0.01))
+
     #蓝色实际飞行轨迹x_c用current state, 红色就是mpc推出的轨迹(将current states代入mpc,同时也给了参考轨迹)
     ax.plot(traj_s[:, 0], traj_s[:, 1], traj_s[:, 2], 'b')#x,y,z
     ax.plot(traj_d[:, 0], traj_d[:, 1], traj_d[:, 2], 'r')#x,y,z
@@ -522,5 +526,6 @@ if __name__ == '__main__':
     #g = traj_d[:, 2]- L
     #ax2.plot(e, f, g, 'g')
     plt.show()
-    #print(current_state)
+    print(current_state)
+
     #print(traj_d)
